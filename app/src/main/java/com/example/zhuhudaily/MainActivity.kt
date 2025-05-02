@@ -3,11 +3,13 @@ package com.example.zhuhudaily
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.animateOffsetAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -60,6 +62,7 @@ import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat.startActivity
 import androidx.compose.ui.platform.LocalContext
 import coil.compose.AsyncImage
+import com.example.zhuhudaily.ThemeManager.isDarkTheme
 import com.example.zhuhudaily.ui.theme.BannerData
 import com.example.zhuhudaily.ui.theme.GoneData
 import com.example.zhuhudaily.ui.theme.ZhuHuDailyTheme
@@ -75,6 +78,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Query
 import java.text.SimpleDateFormat
+import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
@@ -234,8 +238,10 @@ class MainActivity : ComponentActivity() {
                         .clickable {
                             val position = pagerState.currentPage
                             val url = bannerData?.data?.topStories?.get(position)?.url ?: ""
+                            val id = bannerData?.data?.topStories?.get(position)?.id?.toInt() ?: 0
                             val intent = Intent(context, ContentActivity::class.java)
                             intent.putExtra("url", url)
+                            intent.putExtra("id", id)
                             context.startActivity(intent)
                         }
                 ) { page ->
@@ -274,6 +280,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -375,8 +382,10 @@ fun StoryCard(story: BannerData.Data.Story? = null, goneStory: GoneData.Data.Sto
             )
             .clickable {
                 url?.let {
+                    val id = story?.id?.toInt() ?: goneStory?.id?.toInt() ?: 0
                     val intent = Intent(context, ContentActivity::class.java)
                     intent.putExtra("url", it)
+                    intent.putExtra("id", id)
                     context.startActivity(intent)
                 }
             },
@@ -424,17 +433,22 @@ private fun getRecentDates(days: Int): List<String> {
     }.reversed()
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("RememberReturnType")
+
 @Composable
 fun Top(modifier: Modifier) {
     val context = LocalContext.current
     var date by remember { mutableStateOf("") }
+    var date2 by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         while (true) {
-            val formatter = SimpleDateFormat("M月d日", Locale.getDefault())
-            date = formatter.format(Date())
+            val formatter = DateTimeFormatter.ofPattern("MMMM", Locale.CHINA)
+            date = java.time.LocalDate.now().format(formatter)
+            val formatter2 = SimpleDateFormat("d", Locale.getDefault())
+            date2 = formatter2.format(Date())
             delay(1000)
         }
     }
@@ -442,31 +456,57 @@ fun Top(modifier: Modifier) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(50.dp)
-            .padding(horizontal = 16.dp),
+            .height(40.dp)
+            .padding(horizontal = 5.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            modifier = Modifier
-                .clickable {
-                    val intent = Intent(context, CalendarActivity::class.java)
-                    context.startActivity(intent)
-                },
-            text = date,
-            style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
-            color = if (ThemeManager.isDarkTheme) Color.White else Color(0xFFBBBBBB)
-        )
-        Text(
-            text = "知乎日报",
-            style = TextStyle(fontSize = 25.sp, fontWeight = FontWeight.Bold),
-            color = if (ThemeManager.isDarkTheme) Color.White else Color.Black
-        )
+        // 日期和分割线部分
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text(
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .clickable {
+                            val intent = Intent(context, CalendarActivity::class.java)
+                            context.startActivity(intent)
+                        },
+                    text = date2,
+                    style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
+                    color = if (isDarkTheme) Color.White else Color(0xFF828282)
+                )
+                Text(
+                    modifier = Modifier
+                        .clickable {
+                            val intent = Intent(context, CalendarActivity::class.java)
+                            context.startActivity(intent)
+                        },
+                    text = date,
+                    style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Thin),
+                    color = if (isDarkTheme) Color.White else Color(0xFF828282)
+                )
+            }
+                    Image(
+                        painter = painterResource(id = R.drawable.line),
+                        contentDescription = "分割线",
+                        modifier = Modifier
+                            .size(30.dp)
+                            .align(Alignment.CenterVertically)
+                    )
+                     Text(
+                             text = "晚上好!",
+                         style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
+                      )
+        }
+
+        // 注册登录图标
         Image(
             painter = painterResource(id = R.drawable.ueser),
             contentDescription = "注册登录",
             modifier = Modifier
-                .size(30.dp)
+                .size(35.dp)
                 .clickable {
                     val intent = Intent(context, LoginActivity::class.java)
                     context.startActivity(intent)
@@ -475,6 +515,7 @@ fun Top(modifier: Modifier) {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
