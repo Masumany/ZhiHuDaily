@@ -2,6 +2,7 @@ package com.example.zhuhudaily.ui.theme
 
 
 import com.google.gson.annotations.SerializedName
+import java.io.Serializable
 
 /**
 {
@@ -133,7 +134,7 @@ data class GoneData(
     val time: Int, // 1746085987
     @SerializedName("usage")
     val usage: Int // 0
-) {
+) : Serializable {
     data class Data(
         @SerializedName("date")
         val date: String, // 20250429
@@ -141,7 +142,7 @@ data class GoneData(
         val stories: List<Story>,
         @SerializedName("top_stories")
         val topStories: List<TopStory>
-    ) {
+    ) :Serializable{
         data class Story(
             @SerializedName("ga_prefix")
             val gaPrefix: String, // 042807
@@ -159,7 +160,7 @@ data class GoneData(
             val type: Int, // 0
             @SerializedName("url")
             val url: String // https://daily.zhihu.com/story/9780783
-        )
+        ):Serializable
 
         data class TopStory(
             @SerializedName("ga_prefix")
@@ -178,6 +179,6 @@ data class GoneData(
             val type: Int, // 0
             @SerializedName("url")
             val url: String // https://daily.zhihu.com/story/9780783
-        )
+        ):Serializable
     }
 }

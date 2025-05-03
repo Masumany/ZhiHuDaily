@@ -2,6 +2,7 @@ package com.example.zhuhudaily.ui.theme
 
 
 import com.google.gson.annotations.SerializedName
+import java.io.Serializable
 
 /**
 {
@@ -88,11 +89,11 @@ data class CommentsData(
     val time: Int, // 1746175823
     @SerializedName("usage")
     val usage: Int // 0
-) {
+) : Serializable {
     data class Data(
         @SerializedName("comments")
         val comments: List<Comment>
-    ) {
+    ) :Serializable{
         data class Comment(
             @SerializedName("author")
             val author: String, // 朱宇飞
@@ -106,6 +107,6 @@ data class CommentsData(
             val likes: Int, // 0
             @SerializedName("time")
             val time: Int // 1746078254
-        )
+        ):Serializable
     }
 }

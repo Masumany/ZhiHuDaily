@@ -40,6 +40,8 @@ android {
 }
 
 dependencies {
+    implementation ("androidx.compose.ui:ui:1.5.1")
+    implementation ("androidx.compose.foundation:foundation:1.5.1")
     implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
     implementation ("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
     implementation ("androidx.appcompat:appcompat:1.0.2")

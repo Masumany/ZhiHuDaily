@@ -1,6 +1,5 @@
 package com.example.zhuhudaily
 
-
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Build
@@ -270,13 +269,13 @@ class MainActivity : ComponentActivity() {
                             .offset { IntOffset(x = indicatorOffset.x.toInt(), y = indicatorOffset.y.toInt()) }
                             .width(8.dp)
                             .height(8.dp)
-                            .background(Color.White
-                            , shape = CircleShape )
+                            .background(Color.White, shape = CircleShape)
                     )
                 }
             }
         }
     }
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -347,10 +346,10 @@ fun CombinedRVContent() {
             items(combinedData!!) { item ->
                 when (item) {
                     is BannerData.Data.Story -> {
-                        StoryCard(story = item)
+                        StoryCard(story = item, combinedData = combinedData)
                     }
                     is GoneData.Data.Story -> {
-                        StoryCard(goneStory = item)
+                        StoryCard(goneStory = item, combinedData = combinedData)
                     }
                 }
             }
@@ -361,7 +360,11 @@ fun CombinedRVContent() {
 }
 
 @Composable
-fun StoryCard(story: BannerData.Data.Story? = null, goneStory: GoneData.Data.Story? = null) {
+fun StoryCard(
+    story: BannerData.Data.Story? = null,
+    goneStory: GoneData.Data.Story? = null,
+    combinedData: List<Any>?
+) {
     val title = story?.title ?: goneStory?.title ?: ""
     val hint = story?.hint ?: goneStory?.hint ?: ""
     val imageUrl = story?.images?.getOrNull(0) ?: goneStory?.images?.getOrNull(0)
@@ -380,9 +383,18 @@ fun StoryCard(story: BannerData.Data.Story? = null, goneStory: GoneData.Data.Sto
             .clickable {
                 url?.let {
                     val id = story?.id?.toInt() ?: goneStory?.id?.toInt() ?: 0
+                    Log.d("StoryCard", "Going to launch ContentActivity with url: $it, id: $id")
                     val intent = Intent(context, ContentActivity::class.java)
                     intent.putExtra("url", it)
                     intent.putExtra("id", id)
+                    val articleList = combinedData?.map { item ->
+                        when (item) {
+                            is BannerData.Data.Story -> Article(item.id.toInt(), item.url)
+                            is GoneData.Data.Story -> Article(item.id.toInt(), item.url)
+                            else -> null
+                        }
+                    }?.filterNotNull()
+                    intent.putParcelableArrayListExtra("articleList", ArrayList(articleList))
                     context.startActivity(intent)
                 }
             },
@@ -392,7 +404,7 @@ fun StoryCard(story: BannerData.Data.Story? = null, goneStory: GoneData.Data.Sto
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-               ,
+            ,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(
@@ -433,7 +445,6 @@ private fun getRecentDates(days: Int): List<String> {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("RememberReturnType")
-
 @Composable
 fun Top(modifier: Modifier) {
     val context = LocalContext.current
@@ -486,17 +497,17 @@ fun Top(modifier: Modifier) {
                     color = if (isDarkTheme) Color.White else Color(0xFF828282)
                 )
             }
-                    Image(
-                        painter = painterResource(id = R.drawable.line),
-                        contentDescription = "分割线",
-                        modifier = Modifier
-                            .size(30.dp)
-                            .align(Alignment.CenterVertically)
-                    )
-                     Text(
-                             text = "知乎日报",
-                         style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
-                      )
+            Image(
+                painter = painterResource(id = R.drawable.line),
+                contentDescription = "分割线",
+                modifier = Modifier
+                    .size(30.dp)
+                    .align(Alignment.CenterVertically)
+            )
+            Text(
+                text = "知乎日报",
+                style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            )
         }
 
         // 注册登录图标
