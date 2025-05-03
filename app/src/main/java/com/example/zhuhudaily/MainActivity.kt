@@ -202,15 +202,9 @@ class MainActivity : ComponentActivity() {
 
             Box(
                 modifier = Modifier
-                    .width(360.dp)
-                    .height(360.dp)
+                    .fillMaxWidth()
+                    .height(320.dp)
                     .clip(RoundedCornerShape(10.dp))
-                    .shadow(
-                        elevation = 10.dp,
-                        spotColor = Color.Black.copy(alpha = 0.3f),
-                        ambientColor = Color.Black.copy(alpha = 0.2f)
-                    )
-
             ) {
                 Column(
                     modifier = Modifier
@@ -221,13 +215,13 @@ class MainActivity : ComponentActivity() {
                     Text(
                         text = bannerTitles?.get(pagerState.currentPage) ?: "",
                         style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
-                        color = Color.White,
+                        color = if (isDarkTheme) Color.White else Color.White,
                         modifier = Modifier.padding(bottom = 10.dp)
                     )
                     Text(
                         text = bannerHint?.get(pagerState.currentPage) ?: "",
                         style = TextStyle(fontSize = 14.sp),
-                        color = Color(0xFFEDECEC),
+                        color = Color(0xFF868686),
                         modifier = Modifier.padding(bottom = 10.dp)
                     )
                 }
@@ -250,7 +244,10 @@ class MainActivity : ComponentActivity() {
                         AsyncImage(
                             model = imageUrl,
                             contentDescription = "轮播图",
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(320.dp),
+                            contentScale = androidx.compose.ui.layout.ContentScale.FillWidth
                         )
                     }
                 }
@@ -273,13 +270,13 @@ class MainActivity : ComponentActivity() {
                             .offset { IntOffset(x = indicatorOffset.x.toInt(), y = indicatorOffset.y.toInt()) }
                             .width(8.dp)
                             .height(8.dp)
-                            .background(Color.White)
+                            .background(Color.White
+                            , shape = CircleShape )
                     )
                 }
             }
         }
     }
-
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -395,7 +392,7 @@ fun StoryCard(story: BannerData.Data.Story? = null, goneStory: GoneData.Data.Sto
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+               ,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(
@@ -404,6 +401,7 @@ fun StoryCard(story: BannerData.Data.Story? = null, goneStory: GoneData.Data.Sto
             ) {
                 Text(
                     text = title,
+                    maxLines = 2,
                     style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 )
                 Text(
@@ -456,7 +454,7 @@ fun Top(modifier: Modifier) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(40.dp)
+            .height(50.dp)
             .padding(horizontal = 5.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
@@ -496,7 +494,7 @@ fun Top(modifier: Modifier) {
                             .align(Alignment.CenterVertically)
                     )
                      Text(
-                             text = "晚上好!",
+                             text = "知乎日报",
                          style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
                       )
         }
