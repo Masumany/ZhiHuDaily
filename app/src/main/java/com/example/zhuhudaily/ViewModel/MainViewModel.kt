@@ -16,8 +16,8 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 
 class MainViewModel : ViewModel() {
-    var bannerData by mutableStateOf<BannerData?>(null)
-        private set
+    var bannerData by mutableStateOf<BannerData?>(null)//可变的对象
+        private set//只能在 MainViewModel 类内部被修改
     var combinedData by mutableStateOf<List<Any>?>(null)
         private set
     var isLoadingBanner by mutableStateOf(true)
@@ -29,8 +29,8 @@ class MainViewModel : ViewModel() {
     var combinedError by mutableStateOf<String?>(null)
         private set
 
-    fun fetchBannerData(scope: CoroutineScope) {
-        scope.launch(Dispatchers.IO) {
+    fun fetchBannerData(scope: CoroutineScope/*为协程提供一个执行上下文的坏境*/) {
+        scope.launch(Dispatchers.IO) {//启动协程
             try {
                 isLoadingBanner = true
                 val response = ApiClient.apiService.getZhiHuNews()
@@ -50,13 +50,13 @@ class MainViewModel : ViewModel() {
             try {
                 isLoadingCombined = true
                 val response1 = ApiClient.apiService.getZhiHuNews()
-                val dates = MainActivity.getRecentDates(30)
+                val dates = MainActivity.getRecentDates(100)
                 val responses = dates.map { date:String ->
-                    scope.async {
+                    scope.async {//异步发起网络请求
                         ApiClient2.apiService2.getZhiHuNews2(date = date)
                     }
                 }.awaitAll()
-                combinedData = response1.data?.stories.orEmpty() + responses.flatMap { it.data?.stories.orEmpty() }
+                combinedData = response1.data?.stories.orEmpty() + responses.flatMap { it.data?.stories.orEmpty() }//让多个日期的集合合并为一个
                 Log.d("MainActivity", "Combined data: $combinedData")
             } catch (e: Exception) {
                 combinedError = e.message
