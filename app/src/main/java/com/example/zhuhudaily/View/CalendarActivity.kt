@@ -1,4 +1,6 @@
-package com.example.zhuhudaily
+package com.example.zhuhudaily.View
+
+import com.example.zhuhudaily.ViewModel.CalendarViewModel
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -20,13 +22,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,11 +31,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat.startActivity
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.zhuhudaily.R
+import com.example.zhuhudaily.ThemeManager
 import com.example.zhuhudaily.ui.theme.ZhuHuDailyTheme
 import java.time.DayOfWeek
-import java.time.LocalDate
-import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 
 class CalendarActivity : ComponentActivity() {
@@ -47,15 +44,19 @@ class CalendarActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ZhuHuDailyTheme(darkTheme = ThemeManager.isDarkTheme) {
-                Scaffold(modifier = Modifier.fillMaxSize()
-                    .background(if (ThemeManager.isDarkTheme) Color.Black else Color.White)) { innerPadding ->
+                val viewModel: CalendarViewModel = viewModel()
+                Scaffold(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(if (ThemeManager.isDarkTheme) Color.Black else Color.White)
+                ) { innerPadding ->
                     Column(
                         modifier = Modifier
                             .padding(innerPadding)
                             .fillMaxSize(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        ManualCalendarExample()
+                        ManualCalendarExample(viewModel)
                     }
                 }
             }
@@ -65,41 +66,43 @@ class CalendarActivity : ComponentActivity() {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ManualCalendarExample() {
-    var currentMonth by remember { mutableStateOf(YearMonth.now()) }
-
+fun ManualCalendarExample(viewModel: CalendarViewModel) {
+    val context = LocalContext.current
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        val context  = LocalContext.current
-        Image(painter = painterResource(if (ThemeManager.isDarkTheme) R.drawable.lightback else R.drawable.back), contentDescription = null,
+        Image(
+            painter = painterResource(if (ThemeManager.isDarkTheme) R.drawable.lightback else R.drawable.back),
+            contentDescription = null,
             alignment = Alignment.TopStart,
             modifier = Modifier
                 .width(30.dp)
                 .padding(top = 20.dp)
                 .height(30.dp)
                 .size(30.dp)
-            .clickable {
-                val intent  = Intent(context, MainActivity::class.java)
-                context.startActivity(intent)
-            })
+                .clickable {
+                    val intent = Intent(context, MainActivity::class.java)
+                    context.startActivity(intent)
+                }
+        )
 
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Button(onClick = { currentMonth = currentMonth.minusMonths(1) }) {
+            Button(onClick = { viewModel.previousMonth() }
+            , modifier = Modifier.background(Color.Transparent)) {
                 Text(text = "上一月")
             }
             Text(
-                text = currentMonth.format(DateTimeFormatter.ofPattern("yyyy 年 MM 月")),
+                text = viewModel.currentMonth.format(DateTimeFormatter.ofPattern("yyyy 年 MM 月")),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
-            Button(onClick = { currentMonth = currentMonth.plusMonths(1) }) {
+            Button(onClick = { viewModel.nextMonth() }) {
                 Text(text = "下一月")
             }
         }
@@ -117,9 +120,9 @@ fun ManualCalendarExample() {
             }
         }
 
-        val firstDayOfMonth = currentMonth.atDay(1)
+        val firstDayOfMonth = viewModel.currentMonth.atDay(1)
         val firstDayOfWeek = firstDayOfMonth.dayOfWeek
-        val daysInMonth = currentMonth.lengthOfMonth()
+        val daysInMonth = viewModel.currentMonth.lengthOfMonth()
 
         var dayCounter = 1
         while (dayCounter <= daysInMonth) {
@@ -141,4 +144,3 @@ fun ManualCalendarExample() {
         }
     }
 }
-    

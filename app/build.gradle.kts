@@ -61,14 +61,9 @@ dependencies {
     implementation("com.google.code.gson:gson:2.8.8")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
     implementation("androidx.paging:paging-runtime:3.2.1")
-
-    // 如果使用 Compose 进行 UI 开发，添加以下依赖
     implementation("androidx.paging:paging-compose:1.0.0-alpha20")
-
-    // 如果使用 Kotlin 协程，添加以下依赖
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
-    // Kotlin 语法
-        implementation("androidx.compose.material3:material3:1.2.0") // 请使用合适版本
+    implementation("androidx.compose.material3:material3:1.2.0") // 请使用合适版本
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

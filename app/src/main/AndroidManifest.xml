@@ -13,7 +13,7 @@
         android:theme="@style/Theme.ZhuHuDaily"
         tools:targetApi="31">
         <activity
-            android:name=".MainActivity"
+            android:name=".View.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.ZhuHuDaily">
@@ -24,17 +24,17 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".LoginActivity"
+            android:name=".View.LoginActivity"
             android:label="登录页面"
             >
         </activity>
         <activity
-            android:name=".ContentActivity"
+            android:name=".View.ContentActivity"
             android:label="内容页面"
             >
         </activity>
         <activity
-            android:name=".CalendarActivity"
+            android:name=".View.CalendarActivity"
             android:label="内容页面"
             >
         </activity>

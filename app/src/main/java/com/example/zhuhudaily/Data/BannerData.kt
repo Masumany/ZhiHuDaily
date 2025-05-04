@@ -1,4 +1,4 @@
-package com.example.zhuhudaily.ui.theme
+package com.example.zhuhudaily.Data
 
 import com.google.gson.annotations.SerializedName
 import java.io.Serializable

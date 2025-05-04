@@ -1,4 +1,4 @@
-package com.example.zhuhudaily
+package com.example.zhuhudaily.View
 
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -27,6 +27,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,6 +43,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.zhuhudaily.R
+import com.example.zhuhudaily.ThemeManager
 import com.example.zhuhudaily.ui.theme.ZhuHuDailyTheme
 
 class LoginActivity : ComponentActivity() {
@@ -67,6 +70,12 @@ class LoginActivity : ComponentActivity() {
     ) {
         val context = LocalContext.current
         var isChecked by remember { mutableStateOf(false) }
+
+        // 使用 LaunchedEffect 监听主题状态变化，当主题状态改变时，UI 会自动更新
+        LaunchedEffect(ThemeManager.isDarkTheme) {
+            // 这里不需要额外操作，只要主题状态变化，就会触发 LaunchedEffect，进而触发 UI 重新组合
+        }
+
         Column(modifier = modifier
             .background(if (ThemeManager.isDarkTheme) Color(0xFF1A1A1A) else Color.White)) {
             Image(
@@ -208,15 +217,6 @@ class LoginActivity : ComponentActivity() {
                                         .size(50.dp)
                                         .clickable {
                                             ThemeManager.toggleTheme()
-                                            setContent {
-                                                ZhuHuDailyTheme(darkTheme = ThemeManager.isDarkTheme) {
-                                                    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                                                        Login(
-                                                            modifier = Modifier.padding(innerPadding)
-                                                        )
-                                                    }
-                                                }
-                                            }
                                         }
                                 )
                                 Text(
