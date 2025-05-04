@@ -31,6 +31,10 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -60,6 +64,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat.startActivity
 import androidx.compose.ui.platform.LocalContext
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import coil.compose.AsyncImage
 import com.example.zhuhudaily.ThemeManager.isDarkTheme
 import com.example.zhuhudaily.ui.theme.BannerData
@@ -83,69 +88,6 @@ import java.util.Date
 import java.util.Locale
 
 class MainActivity : ComponentActivity() {
-    interface ApiService {
-        @GET("api/zhihu")
-        suspend fun getZhiHuNews(): BannerData
-    }
-
-    object ApiClient {
-        private const val BASE_URL = "https://v3.alapi.cn/"
-        private val token = "hnq0tkp4bowkjcqtbn5xxd4qy1kjoj"
-
-        val apiService: ApiService by lazy {
-            val tokenInterceptor = Interceptor { chain ->
-                val originalRequest = chain.request()
-                val newRequest = originalRequest.newBuilder()
-                    .addHeader("Authorization", "Bearer $token")
-                    .build()
-                chain.proceed(newRequest)
-            }
-
-            val okHttpClient = OkHttpClient.Builder()
-                .addInterceptor(tokenInterceptor)
-                .build()
-
-            val retrofit = Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .client(okHttpClient)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
-            retrofit.create(ApiService::class.java)
-        }
-    }
-
-    interface ApiService2 {
-        @GET("api/zhihu/get")
-        suspend fun getZhiHuNews2(
-            @Query("date") date: String,
-        ): GoneData
-    }
-
-    object ApiClient2 {
-        val apiService2: ApiService2 by lazy {
-            val BASE_URL = "https://v3.alapi.cn/"
-            val token = "hnq0tkp4bowkjcqtbn5xxd4qy1kjoj"
-            val tokenInterceptor = Interceptor { chain ->
-                val originalRequest = chain.request()
-                val newRequest = originalRequest.newBuilder()
-                    .addHeader("Authorization", "Bearer $token")
-                    .build()
-                chain.proceed(newRequest)
-            }
-
-            val okHttpClient = OkHttpClient.Builder()
-                .addInterceptor(tokenInterceptor)
-                .build()
-
-            val retrofit = Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .client(okHttpClient)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
-            retrofit.create(ApiService2::class.java)
-        }
-    }
-
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
     fun BannerContent() {
@@ -299,23 +241,25 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
 @Composable
 fun CombinedRVContent() {
     val scope = rememberCoroutineScope()
     var combinedData by remember { mutableStateOf<List<Any>?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
+    var isRefreshing by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         isLoading = true
         scope.launch {
             try {
-                val response1 = MainActivity.ApiClient.apiService.getZhiHuNews()
+                val response1 = ApiClient.apiService.getZhiHuNews()
                 val dates = getRecentDates(30)
                 val responses = dates.map { date ->
                     scope.async {
-                        MainActivity.ApiClient2.apiService2.getZhiHuNews2(date = date)
+                        ApiClient2.apiService2.getZhiHuNews2(date = date)
                     }
                 }.awaitAll()
                 combinedData = response1.data?.stories.orEmpty() + responses.flatMap { it.data?.stories.orEmpty() }
@@ -329,33 +273,85 @@ fun CombinedRVContent() {
         }
     }
 
-    if (isLoading) {
-        CircularProgressIndicator(
-            color = Color(0xFF007AFF),
-            modifier = Modifier
-                .size(48.dp)
-        )
-    } else if (error != null) {
-        Text(text = "Error: $error", color = Color.Red)
-    } else if (combinedData != null) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-        ) {
-            items(combinedData!!) { item ->
-                when (item) {
-                    is BannerData.Data.Story -> {
-                        StoryCard(story = item, combinedData = combinedData)
-                    }
-                    is GoneData.Data.Story -> {
-                        StoryCard(goneStory = item, combinedData = combinedData)
-                    }
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = {
+            isRefreshing = true
+            scope.launch {
+                try {
+                    val response1 = ApiClient.apiService.getZhiHuNews()
+                    val dates = getRecentDates(30)
+                    val responses = dates.map { date ->
+                        scope.async {
+                           ApiClient2.apiService2.getZhiHuNews2(date = date)
+                        }
+                    }.awaitAll()
+                    combinedData = response1.data?.stories.orEmpty() + responses.flatMap { it.data?.stories.orEmpty() }
+                    Log.d("MainActivity", "Combined data after refresh: $combinedData")
+                } catch (e: Exception) {
+                    error = e.message
+                    Log.e("MainActivity", "Request error during refresh: ${e.message}", e)
+                } finally {
+                    isRefreshing = false
                 }
             }
         }
-    } else {
-        Text(text = "No stories available.", modifier = Modifier.fillMaxSize(), textAlign = TextAlign.Center)
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pullRefresh(pullRefreshState)
+    ) {
+        if (isLoading) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(
+                    color = Color(0xFF007AFF),
+                    modifier = Modifier.size(48.dp)
+                )
+            }
+        } else if (error != null) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = "Error: $error", color = Color.Red)
+            }
+        } else if (combinedData != null) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            ) {
+                items(combinedData!!.size) { index ->
+                    val item = combinedData!![index]
+                    when (item) {
+                        is BannerData.Data.Story -> {
+                            StoryCard(story = item, combinedData = combinedData)
+                        }
+                        is GoneData.Data.Story -> {
+                            StoryCard(goneStory = item, combinedData = combinedData)
+                        }
+                    }
+                }
+            }
+        } else {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = "No stories available.", textAlign = TextAlign.Center)
+            }
+        }
+
+        PullRefreshIndicator(
+            refreshing = isRefreshing,
+            state = pullRefreshState,
+            modifier = Modifier.align(Alignment.TopCenter)
+        )
     }
 }
 
