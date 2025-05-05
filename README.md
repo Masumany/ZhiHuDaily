@@ -6,6 +6,7 @@
 *日历界面*：顶部组件，日历  
 # **App功能展示**  
 ![20250505-0425-00 0300051](https://github.com/user-attachments/assets/fcba56bf-be20-4e3a-a65c-218b196a2a24)
+[链接](https://github.com/user-attachments/assets/fcba56bf-be20-4e3a-a65c-218b196a2a24)
 # **技术亮点和自己认为写得不错的地方**   
 1.采用compose来写，用mvvm框架，运用协程进行网络请求，在项目中加入深色模式的切换。  
 2.在文章内容页面，点击切换按钮能够及时切换文章内容与对应的评论，较为便捷。  
