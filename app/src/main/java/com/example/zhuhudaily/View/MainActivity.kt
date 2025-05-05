@@ -132,6 +132,7 @@ companion object {//创建一个伴生对象
                 delay(2000)//挂起函数，停2s
                 pagerState.animateScrollToPage(pagerState.currentPage + 1)//滑动到指定页面
                 if (pagerState.currentPage == viewModel.bannerData?.data?.topStories?.size?.minus(1) ?: 0) {
+                    delay(2000)//停2s
                     pagerState.animateScrollToPage(0)//如果到了最后一页，则滑动到第一页
                 }
             }

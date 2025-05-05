@@ -51,7 +51,7 @@ class MainViewModel : ViewModel() {
             try {
                 isLoadingCombined = true
                 val response1 = ApiClient.apiService.getZhiHuNews()
-                val dates = MainActivity.getRecentDates(30)
+                val dates = MainActivity.getRecentDates(7)
                 val responses = dates.map { date:String ->
                     viewModelScope.async {//异步发起网络请求
                         ApiClient2.apiService2.getZhiHuNews2(date = date)
