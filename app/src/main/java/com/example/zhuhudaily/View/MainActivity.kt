@@ -86,8 +86,8 @@ class MainActivity : ComponentActivity() {
                 val scope = rememberCoroutineScope()//创建一个协程作用域
 
                 LaunchedEffect(Unit) {//启动协程获取banner和combined数据
-                    viewModel.fetchBannerData(scope)
-                    viewModel.fetchCombinedData(scope)
+                    viewModel.fetchBannerData()
+                    viewModel.fetchCombinedData()
                 }
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->

@@ -70,15 +70,12 @@ class LoginActivity : ComponentActivity() {
     ) {
         val context = LocalContext.current
         var isChecked by remember { mutableStateOf(false) }
-
         // 使用 LaunchedEffect 监听主题状态变化，当主题状态改变时，UI 会自动更新
         LaunchedEffect(ThemeManager.isDarkTheme) {
-            // 这里不需要额外操作，只要主题状态变化，就会触发 LaunchedEffect，进而触发 UI 重新组合
         }
-
         Column(modifier = modifier
             .background(if (ThemeManager.isDarkTheme) Color(0xFF1A1A1A) else Color.White)) {
-            Image(
+            Image(//返回按钮
                 painter = painterResource(if (ThemeManager.isDarkTheme) R.drawable.lightback else R.drawable.back),
                 contentDescription = null,
                 alignment = Alignment.TopStart,
@@ -105,7 +102,7 @@ class LoginActivity : ComponentActivity() {
                         )
                     )
                 }
-            )
+            )//标题
             Text(
                 text = "请选择登陆方式",
                 modifier = Modifier.fillMaxWidth()
@@ -115,7 +112,7 @@ class LoginActivity : ComponentActivity() {
                     fontSize = 16.sp,
                     textAlign = TextAlign.Center
                 )
-            )
+            )//副标题
             Row(
                 modifier = Modifier
                     .padding(top = 20.dp)
@@ -158,7 +155,7 @@ class LoginActivity : ComponentActivity() {
                             context.startActivity(intent)
                         }
                 )
-            }
+            }//登陆图标
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.Center,
@@ -195,7 +192,7 @@ class LoginActivity : ComponentActivity() {
                             color = if (ThemeManager.isDarkTheme) Color(0xFFBB86FC) else Color(0xFF6200EE)
                         )
                     )
-                }
+                }//同意项
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.BottomCenter
@@ -225,7 +222,7 @@ class LoginActivity : ComponentActivity() {
                                     modifier = Modifier.padding(top = 5.dp),
                                     color = if (ThemeManager.isDarkTheme) Color.White else Color.Black
                                 )
-                            }
+                            }//切换主题
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 modifier = Modifier.padding(horizontal = 10.dp)
@@ -247,7 +244,7 @@ class LoginActivity : ComponentActivity() {
                                         },
                                     color = if (ThemeManager.isDarkTheme) Color.White else Color.Black
                                 )
-                            }
+                            }//设置
                         }
                     }
                 }

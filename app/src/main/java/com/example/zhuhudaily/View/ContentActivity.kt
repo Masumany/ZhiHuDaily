@@ -63,16 +63,16 @@ class ContentActivity : ComponentActivity() {
                 val viewModel: ContentViewModel = viewModel()
                 val url = intent.getStringExtra("url") ?: ""
                 val id = intent.getIntExtra("id", 0)
-                val articleList = intent.getParcelableArrayListExtra<Article>("articleList") ?: emptyList()
-                var currentIndex by remember { mutableIntStateOf(articleList.indexOfFirst { it.id == id }) }
+                val articleList = intent.getParcelableArrayListExtra<Article>("articleList") ?: emptyList()//接受从MainActivity中获取的articleList
+                var currentIndex by remember { mutableIntStateOf(articleList.indexOfFirst { it.id == id }) }//遍历列表返回弟弟一个元素的索引，没有找到符合条件的返回-1
                 if (currentIndex == -1) {
-                    currentIndex = 0
+                    currentIndex = 0//没有找到就为0
                 }
-                var isExpanded by remember { mutableStateOf(false) }
+                var isExpanded by remember { mutableStateOf(false) }//关于评论折叠展开
 
                 LaunchedEffect(articleList.getOrNull(currentIndex)?.id?.toString() ?: id.toString()) {
-                    viewModel.fetchComments(articleList.getOrNull(currentIndex)?.id?.toString() ?: id.toString(), this)
-                }
+                    viewModel.fetchComments(articleList.getOrNull(currentIndex)?.id?.toString() ?: id.toString())
+                }//协程体
 
                 Column {
                     Content(
@@ -91,7 +91,7 @@ class ContentActivity : ComponentActivity() {
                                 currentIndex++
                             }
                         }
-                    )
+                    )//切换上下篇文章的方法
                     Comments(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -100,35 +100,35 @@ class ContentActivity : ComponentActivity() {
                         isExpanded = isExpanded,
                         onExpandChange = { isExpanded = it },
                         viewModel = viewModel
-                    )
+                    )//评论展开折叠的方法
                 }
             }
         }
     }
 }
 
-data class Article(val id: Int, val url: String) : Parcelable {
-    constructor(parcel: Parcel) : this(
-        parcel.readInt(),
-        parcel.readString()!!
+data class Article(val id: Int, val url: String) : Parcelable {//不同组件中的传递
+    constructor(parcel: Parcel) : this(//从 Parcel 对象中读取数据并创建 Article 对象
+        parcel.readInt(),//id
+        parcel.readString()!!//url
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeInt(id)
         parcel.writeString(url)
-    }
+    }//Article 对象的属性写入 Parcel 对象
 
     override fun describeContents(): Int {
         return 0
     }
 
-    companion object CREATOR : Parcelable.Creator<Article> {
+    companion object CREATOR : Parcelable.Creator<Article> {//伴生对象，实现 Parcelable.Creator 接口来创建 Article 对象的实例
         override fun createFromParcel(parcel: Parcel): Article {
             return Article(parcel)
         }
 
         override fun newArray(size: Int): Array<Article?> {
-            return arrayOfNulls(size)
+            return arrayOfNulls(size)//创建一个指定大小的 Article 对象数组，初始值都为 null
         }
     }
 }
@@ -139,7 +139,7 @@ fun Content(
     url: String,
     onPreviousClick: () -> Unit,
     onNextClick: () -> Unit
-) {
+) {//文章内容
     var currentUrl by remember { mutableStateOf(url) }
     Column(modifier = modifier) {
         val context = LocalContext.current
@@ -152,7 +152,7 @@ fun Content(
                     val intent = Intent(context, MainActivity::class.java)
                     context.startActivity(intent)
                 }
-        )
+        )//返回
 
         Row(
             modifier = Modifier
@@ -175,15 +175,15 @@ fun Content(
                 )){
                 Text("下一篇")
             }
-        }
+        }//切换上下篇按钮
 
         AndroidView(
-            factory = { context ->
+            factory = { context ->//webView实例
                 WebView(context).apply {
                     layoutParams = android.view.ViewGroup.LayoutParams(
                         android.view.ViewGroup.LayoutParams.MATCH_PARENT,
                         android.view.ViewGroup.LayoutParams.MATCH_PARENT
-                    )
+                    )//设置webView的参数
                     webViewClient = object : WebViewClient() {
                         override fun onReceivedError(
                             view: WebView?,
@@ -194,11 +194,11 @@ fun Content(
                             Log.e("ContentActivity", "WebView error: ${error?.description}")
                         }
                     }
-                    settings.javaScriptEnabled = true
-                    loadUrl(currentUrl)
+                    settings.javaScriptEnabled = true//启用js的支持
+                    loadUrl(currentUrl)//加载指定的url
                 }
             },
-            update = { webView ->
+            update = { webView ->//更新webView
                 if (webView.url != currentUrl) {
                     webView.loadUrl(currentUrl)
                 }
@@ -207,9 +207,9 @@ fun Content(
                 .fillMaxSize()
         )
 
-    }
+    }//在app内打开网页
 
-    LaunchedEffect(url) {
+    LaunchedEffect(url) {//启动协程，保证url与文章的对应
         currentUrl = url
     }
 }
@@ -232,7 +232,7 @@ fun Comments(
             color = Color(0xFF007AFF),
             modifier = Modifier
                 .size(48.dp)
-        )
+        )//加载的小圈圈
     } else if (viewModel.error != null) {
         Text(
             text = "Error: ${viewModel.error}",
@@ -263,14 +263,14 @@ fun Comments(
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold
                         )
-                    )
+                    )//评论标题
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f)
                     ) {
                         viewModel.commentsData?.data?.comments?.let { comments ->
-                            items(comments) { comment ->
+                            items(comments) { comment ->//遍历每一个可组合项
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -283,7 +283,7 @@ fun Comments(
                                             .size(40.dp)
                                             .align(Alignment.CenterVertically)
                                             .clip(CircleShape)
-                                    )
+                                    )//用户头像的加载
                                     Column(
                                         modifier = Modifier
                                             .padding(start = 16.dp)
@@ -297,17 +297,17 @@ fun Comments(
                                                 fontSize = 16.sp,
                                                 fontWeight = FontWeight.Bold
                                             )
-                                        )
+                                        )//作者
                                         Text(
                                             color = Color.Black,
                                             text = comment.content,
                                             style = TextStyle(fontSize = 14.sp),
                                             modifier = Modifier.padding(top = 8.dp)
-                                        )
+                                        )//内容
                                     }
                                 }
                             }
-                        } ?: run {
+                        } ?: run {//评论为空时
                             item {
                                 Text(
                                     text = "No comments available.",
@@ -332,7 +332,7 @@ fun Comments(
                 )
             ) {
                 Text(text = if (isExpanded) "收缩评论" else "展开评论")
-            }
+            }//收缩展开评论
         }
     }
 }

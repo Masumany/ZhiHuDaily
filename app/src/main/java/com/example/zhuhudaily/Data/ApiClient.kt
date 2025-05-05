@@ -12,13 +12,13 @@ import retrofit2.http.Query
 
 interface ApiService {
     @GET("api/zhihu")
-    suspend fun getZhiHuNews(): BannerData
+    suspend fun getZhiHuNews(): BannerData//挂起函数。可在协程中调用
 }
 
 interface ApiService2 {
     @GET("api/zhihu/get")
     suspend fun getZhiHuNews2(
-        @Query("date") date: String
+        @Query("date") date: String//查询字符
     ): GoneData
 }
 
@@ -29,27 +29,27 @@ interface ApiService3 {
     ): CommentsData
 }
 
-private fun <T> createRetrofitService(baseUrl: String, apiInterface: Class<T>): T {
+private fun <T> createRetrofitService(baseUrl: String, apiInterface: Class<T>): T {//创建 Retrofit 服务实例
     val token = "hnq0tkp4bowkjcqtbn5xxd4qy1kjoj"
-    val tokenInterceptor = Interceptor { chain ->
-        val originalRequest = chain.request()
-        val newRequest = originalRequest.newBuilder()
+    val tokenInterceptor = Interceptor { chain ->//拦截所有的网络请求，并在请求头中添加认证信息
+        val originalRequest = chain.request()//获取原始的请求对象
+        val newRequest = originalRequest.newBuilder()//创建一个原始请求的构建器
             .addHeader("Authorization", "Bearer $token")
             .build()
-        chain.proceed(newRequest)
+        chain.proceed(newRequest)//继续处理新的请求
     }
 
-    val okHttpClient = OkHttpClient.Builder()
-        .addInterceptor(tokenInterceptor)
+    val okHttpClient = OkHttpClient.Builder()//创建 OkHttpClient 实例
+        .addInterceptor(tokenInterceptor)//将之前创建的拦截器添加到 OkHttpClient 中
         .build()
 
-    val retrofit = Retrofit.Builder()
+    val retrofit = Retrofit.Builder()//创建 Retrofit 实例
         .baseUrl(baseUrl)
         .client(okHttpClient)
-        .addConverterFactory(GsonConverterFactory.create())
+        .addConverterFactory(GsonConverterFactory.create())//服务器返回的 JSON 数据转换为 Kotlin 对象
         .build()
 
-    return retrofit.create(apiInterface)
+    return retrofit.create(apiInterface)//根据传入的 apiInterface 创建对应的 Retrofit 服务实例，并将其返回
 }
 
 // ApiClient 实例

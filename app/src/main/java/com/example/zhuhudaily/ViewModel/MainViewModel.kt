@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.zhuhudaily.ApiClient
 import com.example.zhuhudaily.ApiClient2
 import com.example.zhuhudaily.View.MainActivity
@@ -29,8 +30,8 @@ class MainViewModel : ViewModel() {
     var combinedError by mutableStateOf<String?>(null)
         private set
 
-    fun fetchBannerData(scope: CoroutineScope/*为协程提供一个执行上下文的坏境*/) {
-        scope.launch(Dispatchers.IO) {//启动协程
+    fun fetchBannerData() {
+        viewModelScope.launch(Dispatchers.IO) {//启动协程
             try {
                 isLoadingBanner = true
                 val response = ApiClient.apiService.getZhiHuNews()
@@ -45,14 +46,14 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun fetchCombinedData(scope: CoroutineScope) {
-        scope.launch(Dispatchers.IO) {
+    fun fetchCombinedData() {
+       viewModelScope.launch(Dispatchers.IO) {
             try {
                 isLoadingCombined = true
                 val response1 = ApiClient.apiService.getZhiHuNews()
-                val dates = MainActivity.getRecentDates(100)
+                val dates = MainActivity.getRecentDates(30)
                 val responses = dates.map { date:String ->
-                    scope.async {//异步发起网络请求
+                    viewModelScope.async {//异步发起网络请求
                         ApiClient2.apiService2.getZhiHuNews2(date = date)
                     }
                 }.awaitAll()

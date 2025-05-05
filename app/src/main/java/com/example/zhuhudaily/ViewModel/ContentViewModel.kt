@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.zhuhudaily.ApiClient3
 import com.example.zhuhudaily.Data.CommentsData
 import kotlinx.coroutines.CoroutineScope
@@ -19,12 +20,12 @@ class ContentViewModel : ViewModel() {
     var error by mutableStateOf<String?>(null)
         private set
 
-    fun fetchComments(articleId: String, scope: CoroutineScope) {
-        scope.launch(Dispatchers.IO) {
+    fun fetchComments(articleId: String) {
+       viewModelScope.launch(Dispatchers.IO) {//使用协程发起网络请求
             try {
                 isLoading = true
                 val response = ApiClient3.apiService3.getZhiHuComments(articleId)
-                if (response.code == 200) {
+                if (response.code == 200) {//状态码==200表示请求成功
                     commentsData = response
                     Log.d("CommentsData", "CommentsData: $response")
                 } else {

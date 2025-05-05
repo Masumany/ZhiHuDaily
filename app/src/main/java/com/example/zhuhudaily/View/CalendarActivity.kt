@@ -56,7 +56,7 @@ class CalendarActivity : ComponentActivity() {
                             .fillMaxSize(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        ManualCalendarExample(viewModel)
+                        Calendar(viewModel)
                     }
                 }
             }
@@ -66,7 +66,7 @@ class CalendarActivity : ComponentActivity() {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ManualCalendarExample(viewModel: CalendarViewModel) {
+fun Calendar(viewModel: CalendarViewModel) {
     val context = LocalContext.current
     Column(
         modifier = Modifier
@@ -86,7 +86,7 @@ fun ManualCalendarExample(viewModel: CalendarViewModel) {
                     val intent = Intent(context, MainActivity::class.java)
                     context.startActivity(intent)
                 }
-        )
+        )//返回
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -105,39 +105,39 @@ fun ManualCalendarExample(viewModel: CalendarViewModel) {
             Button(onClick = { viewModel.nextMonth() }) {
                 Text(text = "下一月")
             }
-        }
+        }//切换月份的按钮
 
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            DayOfWeek.values().forEach { dayOfWeek ->
+            DayOfWeek.values().forEach { dayOfWeek ->//枚举一周中的每一天
                 Text(
-                    text = dayOfWeek.name.take(3),
+                    text = dayOfWeek.name.take(3),//前三个字母作为日期
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold
                 )
             }
         }
 
-        val firstDayOfMonth = viewModel.currentMonth.atDay(1)
-        val firstDayOfWeek = firstDayOfMonth.dayOfWeek
-        val daysInMonth = viewModel.currentMonth.lengthOfMonth()
+        val firstDayOfMonth = viewModel.currentMonth.atDay(1)//获取指定月份的第一天
+        val firstDayOfWeek = firstDayOfMonth.dayOfWeek//该月的第一天是星期几
+        val daysInMonth = viewModel.currentMonth.lengthOfMonth()//该月的总天数
 
         var dayCounter = 1
-        while (dayCounter <= daysInMonth) {
+        while (dayCounter <= daysInMonth) {//小于该月的天数继续循环
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 for (i in 1..7) {
                     if (dayCounter == 1 && i < firstDayOfWeek.value) {
-                        Text(text = "")
-                    } else if (dayCounter <= daysInMonth) {
+                        Text(text = "")//空文本来填充第一天前面的日子
+                    } else if (dayCounter <= daysInMonth) {//小于月份的天数
                         Text(text = dayCounter.toString())
                         dayCounter++
                     } else {
-                        Text(text = "")
+                        Text(text = "")//大于月份的天数，填充空白
                     }
                 }
             }
