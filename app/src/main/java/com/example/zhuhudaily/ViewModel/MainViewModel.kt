@@ -17,21 +17,26 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 
 class MainViewModel : ViewModel() {
-    var bannerData by mutableStateOf<BannerData?>(null)//可变的对象
-        private set//只能在 MainViewModel 类内部被修改
+    var bannerData by mutableStateOf<BannerData?>(null)
+        private set
     var combinedData by mutableStateOf<List<Any>?>(null)
         private set
     var isLoadingBanner by mutableStateOf(true)
         private set
     var isLoadingCombined by mutableStateOf(true)
         private set
+    var isLoadingMoreCombined by mutableStateOf(false)
+        private set
     var bannerError by mutableStateOf<String?>(null)
         private set
     var combinedError by mutableStateOf<String?>(null)
         private set
 
+    private var currentDateIndex = 0
+    private val dates = MainActivity.getRecentDates(7)
+
     fun fetchBannerData() {
-        viewModelScope.launch(Dispatchers.IO) {//启动协程
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 isLoadingBanner = true
                 val response = ApiClient.apiService.getZhiHuNews()
@@ -47,23 +52,40 @@ class MainViewModel : ViewModel() {
     }
 
     fun fetchCombinedData() {
-       viewModelScope.launch(Dispatchers.IO) {
+        currentDateIndex = 0
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 isLoadingCombined = true
                 val response1 = ApiClient.apiService.getZhiHuNews()
-                val dates = MainActivity.getRecentDates(7)
-                val responses = dates.map { date:String ->
-                    viewModelScope.async {//异步发起网络请求
-                        ApiClient2.apiService2.getZhiHuNews2(date = date)
-                    }
-                }.awaitAll()
-                combinedData = response1.data?.stories.orEmpty() + responses.flatMap { it.data?.stories.orEmpty() }//让多个日期的集合合并为一个
+                val firstDateResponse = ApiClient2.apiService2.getZhiHuNews2(date = dates[currentDateIndex])
+                currentDateIndex++
+                combinedData = response1.data?.stories.orEmpty() + firstDateResponse.data?.stories.orEmpty()
                 Log.d("MainActivity", "Combined data: $combinedData")
             } catch (e: Exception) {
                 combinedError = e.message
                 Log.e("MainActivity", "Request error: ${e.message}", e)
             } finally {
                 isLoadingCombined = false
+            }
+        }
+    }
+
+    fun loadMoreCombinedData() {
+        if (currentDateIndex >= dates.size || isLoadingMoreCombined) {
+            return
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                isLoadingMoreCombined = true
+                val response = ApiClient2.apiService2.getZhiHuNews2(date = dates[currentDateIndex])
+                currentDateIndex++
+                combinedData = combinedData.orEmpty() + response.data?.stories.orEmpty()
+                Log.d("MainActivity", "Loaded more data: ${response.data?.stories}")
+            } catch (e: Exception) {
+                combinedError = e.message
+                Log.e("MainActivity", "Request error: ${e.message}", e)
+            } finally {
+                isLoadingMoreCombined = false
             }
         }
     }
