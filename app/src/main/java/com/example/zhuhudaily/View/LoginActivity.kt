@@ -214,6 +214,16 @@ class LoginActivity : ComponentActivity() {
                                         .size(50.dp)
                                         .clickable {
                                             ThemeManager.toggleTheme()
+                                            // 重新设置当前界面的内容，触发 UI 更新
+                                            setContent {
+                                                ZhuHuDailyTheme(darkTheme = ThemeManager.isDarkTheme) {
+                                                    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                                                        Login(
+                                                            modifier = Modifier.padding(innerPadding)
+                                                        )
+                                                    }
+                                                }
+                                            }
                                         }
                                 )
                                 Text(
