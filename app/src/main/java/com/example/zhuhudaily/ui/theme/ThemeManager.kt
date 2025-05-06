@@ -1,13 +1,15 @@
 package com.example.zhuhudaily
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 
 object ThemeManager {
-    var isDarkTheme = false//默认不是暗黑主题
-        private set
+    var _isDarkTheme = mutableStateOf(false)//默认不是暗黑主题
+    val isDarkTheme: Boolean by _isDarkTheme
 
     fun toggleTheme() {
-        isDarkTheme = !isDarkTheme//切换主题
+        _isDarkTheme.value = !_isDarkTheme.value//切换主题
     }
 }
 

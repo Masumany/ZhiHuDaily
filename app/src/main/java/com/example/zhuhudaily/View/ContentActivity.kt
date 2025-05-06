@@ -9,6 +9,7 @@ import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -84,11 +85,17 @@ class ContentActivity : ComponentActivity() {
                         onPreviousClick = {
                             if (currentIndex > 0) {
                                 currentIndex--
+                                if(currentIndex == 0){
+                                    Toast.makeText(this@ContentActivity, "已到文章列表的起始", Toast.LENGTH_SHORT).show()
+                                }
                             }
                         },
                         onNextClick = {
                             if (currentIndex < articleList.size - 1) {
                                 currentIndex++
+                                if (currentIndex == articleList.size - 1){
+                                    Toast.makeText(this@ContentActivity, "已到文章列表的末尾", Toast.LENGTH_SHORT).show()
+                                }
                             }
                         }
                     )//切换上下篇文章的方法
@@ -166,7 +173,6 @@ fun Content(
                 )
                 ) ){
                 Text("上一篇")
-
             }
             Button(onClick = onNextClick,
                 colors = ButtonDefaults.buttonColors(if (ThemeManager.isDarkTheme) Color(0xFF673AB7) else Color(

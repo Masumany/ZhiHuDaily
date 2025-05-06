@@ -69,7 +69,6 @@ import com.example.zhuhudaily.ThemeManager.isDarkTheme
 import com.example.zhuhudaily.Data.BannerData
 import com.example.zhuhudaily.Data.GoneData
 import com.example.zhuhudaily.R
-import com.example.zhuhudaily.ThemeManager
 import com.example.zhuhudaily.ViewModel.MainViewModel
 import com.example.zhuhudaily.ui.theme.ZhuHuDailyTheme
 import kotlinx.coroutines.delay
@@ -99,14 +98,14 @@ class MainActivity : ComponentActivity() {
                     viewModel.fetchCombinedData()
                 }
 
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                Scaffold(modifier = Modifier.fillMaxSize(), containerColor = if (isDarkTheme) Color.Black else Color.White, contentColor = if (isDarkTheme) Color.White else Color.Black) { innerPadding ->
                     Column(
                         modifier = Modifier
                             .padding(innerPadding)
                             .fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        Top(modifier = Modifier.padding(innerPadding))
+                        Top(modifier = Modifier.padding(innerPadding),titleColor=if (isDarkTheme) Color.White else Color.Black)
                         PullToRefreshBox(
                             state = refreshState,
                             modifier = Modifier.fillMaxWidth(),
@@ -125,7 +124,7 @@ class MainActivity : ComponentActivity() {
                             LazyColumn(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 16.dp)
+                                    .padding(horizontal = 16.dp),
                             ) {
                                 item {
                                     BannerContent(viewModel = viewModel)
@@ -287,7 +286,6 @@ class MainActivity : ComponentActivity() {
             PullToRefreshBox(
                 isRefreshing = isRefreshing,
                 onRefresh = OnRefresh,
-                modifier = modifier
             ) {
                 if (viewModel.isLoadingCombined) {
                     CircularProgressIndicator(
@@ -332,7 +330,7 @@ class MainActivity : ComponentActivity() {
         fun StoryCard(
             story: BannerData.Data.Story? = null,
             goneStory: GoneData.Data.Story? = null,
-            combinedData: List<Any>?
+            combinedData: List<Any>?,
         ) {
             val title = story?.title ?: goneStory?.title ?: ""
             val hint = story?.hint ?: goneStory?.hint ?: ""
@@ -414,7 +412,7 @@ class MainActivity : ComponentActivity() {
         @RequiresApi(Build.VERSION_CODES.O)
         @SuppressLint("RememberReturnType")
         @Composable
-        fun Top(modifier: Modifier) {
+        fun Top(modifier: Modifier, titleColor: Color) {
             val context = LocalContext.current
             var date by remember { mutableStateOf("") }
             var date2 by remember { mutableStateOf("") }
@@ -498,7 +496,7 @@ class MainActivity : ComponentActivity() {
         fun GreetingPreview() {
             ZhuHuDailyTheme {
                 Column {
-                    Top(Modifier.fillMaxWidth())
+                    Top(Modifier.fillMaxWidth(), if (isDarkTheme) Color.White else Color.Black)
                     CombinedRVContent(modifier = Modifier.fillMaxWidth(), viewModel = MainViewModel(), isRefreshing = true, OnRefresh = {})
                 }
             }
