@@ -36,6 +36,7 @@ import com.example.zhuhudaily.R
 import com.example.zhuhudaily.ThemeManager
 import com.example.zhuhudaily.ui.theme.ZhuHuDailyTheme
 import java.time.DayOfWeek
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 class CalendarActivity : ComponentActivity() {
@@ -53,7 +54,8 @@ class CalendarActivity : ComponentActivity() {
                     Column(
                         modifier = Modifier
                             .padding(innerPadding)
-                            .fillMaxSize(),
+                            .fillMaxSize()
+                            .background(if (ThemeManager.isDarkTheme) Color.Black else Color.White),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Calendar(viewModel)
@@ -68,6 +70,7 @@ class CalendarActivity : ComponentActivity() {
 @Composable
 fun Calendar(viewModel: CalendarViewModel) {
     val context = LocalContext.current
+    val currentDate = LocalDate.now() // 获取当前日期
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -94,7 +97,7 @@ fun Calendar(viewModel: CalendarViewModel) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Button(onClick = { viewModel.previousMonth() }
-            , modifier = Modifier.background(Color.Transparent)) {
+                , modifier = Modifier.background(Color.Transparent)) {
                 Text(text = "上一月")
             }
             Text(
@@ -134,7 +137,14 @@ fun Calendar(viewModel: CalendarViewModel) {
                     if (dayCounter == 1 && i < firstDayOfWeek.value) {
                         Text(text = "")//空文本来填充第一天前面的日子
                     } else if (dayCounter <= daysInMonth) {//小于月份的天数
-                        Text(text = dayCounter.toString())
+                        val isCurrentDay = viewModel.currentMonth.year == currentDate.year &&
+                                viewModel.currentMonth.month == currentDate.month &&
+                                dayCounter == currentDate.dayOfMonth
+                        val textColor = if (isCurrentDay) Color.Red else Color.Unspecified
+                        Text(
+                            text = dayCounter.toString(),
+                            color = textColor
+                        )
                         dayCounter++
                     } else {
                         Text(text = "")//大于月份的天数，填充空白
