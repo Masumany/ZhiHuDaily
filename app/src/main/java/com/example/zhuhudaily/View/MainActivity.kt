@@ -34,8 +34,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -49,6 +52,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -69,21 +73,26 @@ import com.example.zhuhudaily.ThemeManager
 import com.example.zhuhudaily.ViewModel.MainViewModel
 import com.example.zhuhudaily.ui.theme.ZhuHuDailyTheme
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
 class MainActivity : ComponentActivity() {
+    @OptIn(ExperimentalMaterial3Api::class)
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            ZhuHuDailyTheme(darkTheme = ThemeManager.isDarkTheme) {
+            ZhuHuDailyTheme(darkTheme = isDarkTheme) {
                 val viewModel: MainViewModel = viewModel()
                 val scope = rememberCoroutineScope()//创建一个协程作用域
+                var isRefreshing by remember { mutableStateOf(false) }
+                val refreshState = rememberPullToRefreshState()
 
                 LaunchedEffect(Unit) {//启动协程获取banner和combined数据
                     viewModel.fetchBannerData()
@@ -98,21 +107,37 @@ class MainActivity : ComponentActivity() {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Top(modifier = Modifier.padding(innerPadding))
-                        LazyColumn(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp)
-                        ) {
-                            item {
-                                BannerContent(viewModel = viewModel)
+                        PullToRefreshBox(
+                            state = refreshState,
+                            modifier = Modifier.fillMaxWidth(),
+                            isRefreshing = isRefreshing,
+                            onRefresh = {
+                                isRefreshing = true
+                                viewModel.fetchBannerData()
+                                viewModel.fetchCombinedData()
+                                // 模拟数据加载完成
+                                scope.launch {
+                                    delay(1000)
+                                    isRefreshing = false
+                                }
                             }
-                            items(viewModel.combinedData ?: emptyList()) { item ->//遍历列表数据
-                                when (item) {//根据item的类型来显示
-                                    is BannerData.Data.Story -> {
-                                        StoryCard(story = item, combinedData = viewModel.combinedData)
-                                    }
-                                    is GoneData.Data.Story -> {
-                                        StoryCard(goneStory = item, combinedData = viewModel.combinedData)
+                        ) {
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp)
+                            ) {
+                                item {
+                                    BannerContent(viewModel = viewModel)
+                                }
+                                items(viewModel.combinedData ?: emptyList()) { item ->//遍历列表数据
+                                    when (item) {//根据item的类型来显示
+                                        is BannerData.Data.Story -> {
+                                            StoryCard(story = item, combinedData = viewModel.combinedData)
+                                        }
+                                        is GoneData.Data.Story -> {
+                                            StoryCard(goneStory = item, combinedData = viewModel.combinedData)
+                                        }
                                     }
                                 }
                             }
@@ -218,7 +243,7 @@ class MainActivity : ComponentActivity() {
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(320.dp),
-                                contentScale = androidx.compose.ui.layout.ContentScale.FillWidth//设置图片的缩放模式：宽填满父容器
+                                contentScale = ContentScale.FillWidth//设置图片的缩放模式：宽填满父容器
                             )//加载图片
                         }
                     }
@@ -253,40 +278,53 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        @OptIn(ExperimentalFoundationApi::class)
+        @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
         @Composable
-        fun CombinedRVContent(viewModel: MainViewModel) {
-            if (viewModel.isLoadingCombined) {
-                CircularProgressIndicator(
-                    color = Color(0xFF007AFF),
-                    modifier = Modifier
-                        .size(48.dp)
-                )//加载的小圈圈
-            } else if (viewModel.combinedError != null) {
-                Text(text = "Error: ${viewModel.combinedError}", color = Color.Red)
-            } else if (viewModel.combinedData != null) {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                ) {
-                    items(viewModel.combinedData!!) { item ->//遍历列表数据
-                        when (item) {//根据item的类型来显示
-                            is BannerData.Data.Story -> {
-                                StoryCard(story = item, combinedData = viewModel.combinedData)
-                            }
-                            is GoneData.Data.Story -> {
-                                StoryCard(goneStory = item, combinedData = viewModel.combinedData)
+        fun CombinedRVContent(viewModel: MainViewModel,
+                              isRefreshing: Boolean,
+                              OnRefresh: () -> Unit,
+                              modifier: Modifier) {
+            PullToRefreshBox(
+                isRefreshing = isRefreshing,
+                onRefresh = OnRefresh,
+                modifier = modifier
+            ) {
+                if (viewModel.isLoadingCombined) {
+                    CircularProgressIndicator(
+                        color = Color(0xFF007AFF),
+                        modifier = Modifier
+                            .size(48.dp)
+                    )//加载的小圈圈
+                } else if (viewModel.combinedError != null) {
+                    Text(text = "Error: ${viewModel.combinedError}", color = Color.Red)
+                } else if (viewModel.combinedData != null) {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                    ) {
+                        items(viewModel.combinedData!!) { item ->//遍历列表数据
+                            when (item) {//根据item的类型来显示
+                                is BannerData.Data.Story -> {
+                                    StoryCard(story = item, combinedData = viewModel.combinedData)
+                                }
+
+                                is GoneData.Data.Story -> {
+                                    StoryCard(
+                                        goneStory = item,
+                                        combinedData = viewModel.combinedData
+                                    )
+                                }
                             }
                         }
                     }
+                } else {
+                    Text(
+                        text = "No stories available.",
+                        modifier = Modifier.fillMaxSize(),
+                        textAlign = TextAlign.Center
+                    )
                 }
-            } else {
-                Text(
-                    text = "No stories available.",
-                    modifier = Modifier.fillMaxSize(),
-                    textAlign = TextAlign.Center
-                )
             }
         }
 
@@ -330,7 +368,7 @@ class MainActivity : ComponentActivity() {
                         }
                     },
                 colors = CardDefaults.cardColors(
-                    containerColor = if (ThemeManager.isDarkTheme) Color(
+                    containerColor = if (isDarkTheme) Color(
                         0xFF1A1A1A
                     ) else Color.White
                 ),
@@ -354,7 +392,7 @@ class MainActivity : ComponentActivity() {
                             text = hint,
                             style = TextStyle(
                                 fontSize = 14.sp,
-                                color = if (ThemeManager.isDarkTheme) Color.White else Color.Gray//提示
+                                color = if (isDarkTheme) Color.White else Color.Gray//提示
                             )
                         )
                     }
@@ -385,7 +423,7 @@ class MainActivity : ComponentActivity() {
             LaunchedEffect(Unit) {//组件首次组合时启动一个新协程
                 while (true) {
                     val formatter = DateTimeFormatter.ofPattern("MMMM", Locale.CHINA)//格式
-                    date = java.time.LocalDate.now().format(formatter)
+                    date = LocalDate.now().format(formatter)
                     val formatter2 = SimpleDateFormat("d", Locale.getDefault())
                     date2 = formatter2.format(Date())
                     delay(1000)//挂起函数，每一1000s刷新一次
@@ -461,9 +499,9 @@ class MainActivity : ComponentActivity() {
             ZhuHuDailyTheme {
                 Column {
                     Top(Modifier.fillMaxWidth())
-                    CombinedRVContent(viewModel = viewModel())
+                    CombinedRVContent(modifier = Modifier.fillMaxWidth(), viewModel = MainViewModel(), isRefreshing = true, OnRefresh = {})
                 }
             }
         }
     }
-}    
+}
