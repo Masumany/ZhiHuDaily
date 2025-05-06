@@ -50,8 +50,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.example.zhuhudaily.R
 import com.example.zhuhudaily.ThemeManager
 import com.example.zhuhudaily.ViewModel.ContentViewModel
 import com.example.zhuhudaily.ui.theme.ZhuHuDailyTheme
@@ -115,10 +117,10 @@ class ContentActivity : ComponentActivity() {
 }
 
 data class Article(val id: Int, val url: String) : Parcelable {//不同组件中的传递
-    constructor(parcel: Parcel) : this(//从 Parcel 对象中读取数据并创建 Article 对象
-        parcel.readInt(),//id
-        parcel.readString()!!//url
-    )
+constructor(parcel: Parcel) : this(//从 Parcel 对象中读取数据并创建 Article 对象
+    parcel.readInt(),//id
+    parcel.readString()!!//url
+)
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeInt(id)
@@ -130,9 +132,9 @@ data class Article(val id: Int, val url: String) : Parcelable {//不同组件中
     }
 
     companion object CREATOR : Parcelable.Creator<Article> {//伴生对象，实现 Parcelable.Creator 接口来创建 Article 对象的实例
-        override fun createFromParcel(parcel: Parcel): Article {
-            return Article(parcel)
-        }
+    override fun createFromParcel(parcel: Parcel): Article {
+        return Article(parcel)
+    }
 
         override fun newArray(size: Int): Array<Article?> {
             return arrayOfNulls(size)//创建一个指定大小的 Article 对象数组，初始值都为 null
@@ -160,63 +162,67 @@ fun Content(
                     context.startActivity(intent)
                 }
         )//返回
+        Box(modifier = Modifier.weight(1f)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .zIndex(1f)
+                    .align(Alignment.Center),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(painter = painterResource(id = R.drawable.before), contentDescription = "上一篇",
+                    modifier = Modifier
+                        .align(Alignment.CenterVertically)
+                        .clickable {
+                            onPreviousClick()
+                        })
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Button(onClick = onPreviousClick,
-                colors = ButtonDefaults.buttonColors(if (ThemeManager.isDarkTheme) Color(0xFF673AB7) else Color(
-                    0xFF03A9F4
-                )
-                ) ){
-                Text("上一篇")
-            }
-            Button(onClick = onNextClick,
-                colors = ButtonDefaults.buttonColors(if (ThemeManager.isDarkTheme) Color(0xFF673AB7) else Color(
-                    0xFF03A9F4
-                )
-                )){
-                Text("下一篇")
-            }
-        }//切换上下篇按钮
+                Image(painter = painterResource(id = R.drawable.after), contentDescription = "下一篇",
+                    modifier = Modifier
+                        .align(Alignment.CenterVertically)
+                        .clickable {
+                            onNextClick()
+                        })
 
-        AndroidView(
-            factory = { context ->//webView实例
-                WebView(context).apply {
-                    layoutParams = android.view.ViewGroup.LayoutParams(
-                        android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-                        android.view.ViewGroup.LayoutParams.MATCH_PARENT
-                    )//设置webView的参数
-                    webViewClient = object : WebViewClient() {
-                        override fun onReceivedError(
-                            view: WebView?,
-                            request: WebResourceRequest?,
-                            error: WebResourceError?
-                        ) {
-                            super.onReceivedError(view, request, error)
-                            Log.e("ContentActivity", "WebView error: ${error?.description}")
+            }//切换上下篇按钮
+
+            AndroidView(
+                factory = { context ->//webView实例
+                    WebView(context).apply {
+                        layoutParams = android.view.ViewGroup.LayoutParams(
+                            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                            android.view.ViewGroup.LayoutParams.MATCH_PARENT
+                        )//设置webView的参数
+                        webViewClient = object : WebViewClient() {
+                            override fun onReceivedError(
+                                view: WebView?,
+                                request: WebResourceRequest?,
+                                error: WebResourceError?
+                            ) {
+                                super.onReceivedError(view, request, error)
+                                Log.e("ContentActivity", "WebView error: ${error?.description}")
+                            }
                         }
+                        settings.javaScriptEnabled = true//启用js的支持
+                        loadUrl(currentUrl)//加载指定的url
                     }
-                    settings.javaScriptEnabled = true//启用js的支持
-                    loadUrl(currentUrl)//加载指定的url
-                }
-            },
-            update = { webView ->//更新webView
-                if (webView.url != currentUrl) {
-                    webView.loadUrl(currentUrl)
-                }
-            },
-            modifier = Modifier
-                .fillMaxSize()
-        )
+                },
+                update = { webView ->//更新webView
+                    if (webView.url != currentUrl) {
+                        webView.loadUrl(currentUrl)
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxSize()
+            )
 
-    }//在app内打开网页
+        }//在app内打开网页
 
-    LaunchedEffect(url) {//启动协程，保证url与文章的对应
-        currentUrl = url
+        LaunchedEffect(url) {//启动协程，保证url与文章的对应
+            currentUrl = url
+        }
     }
 }
 
@@ -263,7 +269,7 @@ fun Comments(
                 ) {
                     Text(
                         text = "评论",
-                        color = Color.Black,
+                        color = if (ThemeManager.isDarkTheme) Color.White else Color.Black,
                         modifier = Modifier.padding(top = 16.dp),
                         style = TextStyle(
                             fontSize = 20.sp,
@@ -297,7 +303,7 @@ fun Comments(
                                             .align(Alignment.CenterVertically)
                                     ) {
                                         Text(
-                                            color = Color.Black,
+                                            color = if (ThemeManager.isDarkTheme) Color.White else Color.Black,
                                             text = comment.author,
                                             style = TextStyle(
                                                 fontSize = 16.sp,
@@ -305,7 +311,7 @@ fun Comments(
                                             )
                                         )//作者
                                         Text(
-                                            color = Color.Black,
+                                            color = if (ThemeManager.isDarkTheme) Color.White else Color.Black,
                                             text = comment.content,
                                             style = TextStyle(fontSize = 14.sp),
                                             modifier = Modifier.padding(top = 8.dp)
@@ -327,18 +333,22 @@ fun Comments(
                     }
                 }
             }
-            Button(
-                onClick = { onExpandChange(!isExpanded) },
+            Box(
                 modifier = Modifier
-                    .align(if (isExpanded) Alignment.BottomEnd else Alignment.Center)
-                    .padding(16.dp),
-                colors = ButtonDefaults.buttonColors(if (ThemeManager.isDarkTheme) Color(
-                    0xFF673AB7
-                ) else Color(0xFF03A9F4)
-                )
+                    .fillMaxSize()
+                    .padding(16.dp)
             ) {
-                Text(text = if (isExpanded) "收缩评论" else "展开评论")
-            }//收缩展开评论
+                Image(
+                    painter = painterResource(id = if (isExpanded) R.drawable.comment else R.drawable.comment_expanded),
+                    contentDescription = if (isExpanded) "收起评论" else "展开评论",
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .size(40.dp)
+                        .clickable {
+                            onExpandChange(!isExpanded)
+                        }
+                )
+            }
         }
     }
 }

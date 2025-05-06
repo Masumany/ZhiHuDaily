@@ -53,7 +53,8 @@ class LoginActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ZhuHuDailyTheme(darkTheme = ThemeManager.isDarkTheme) {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                Scaffold(modifier = Modifier.fillMaxSize()
+                    .background(if (ThemeManager.isDarkTheme) Color.Black else Color.White)) { innerPadding ->
                     Login(
                         modifier = Modifier.padding(innerPadding)
                     )
@@ -91,15 +92,15 @@ class LoginActivity : ComponentActivity() {
             CenterAlignedTopAppBar(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(if (ThemeManager.isDarkTheme) Color(0xFF1A1A1A) else Color.White),
+                    .background(if (ThemeManager.isDarkTheme) Color.Black else Color.White),
                 title = {
                     Text(
                         text = "登录知乎日报",
                         style = TextStyle(
                             fontSize = 30.sp,
                             fontWeight = FontWeight.Bold,
-                            color = if (ThemeManager.isDarkTheme) Color.White else Color.Black
-                        )
+                            ),
+
                     )
                 }
             )//标题
