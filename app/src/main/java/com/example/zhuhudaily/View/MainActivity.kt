@@ -233,8 +233,10 @@ class MainActivity : ComponentActivity() {
                                         ?: 0
                                 val intent = Intent(context, ContentActivity::class.java)
                                 intent.putExtra("url", url)
-                                intent.putExtra("id", id)
-                                context.startActivity(intent)//给ContentActivity传入url和id
+                                intent.putExtra("id", id) // 传递文章列表
+                                val articleList = viewModel.bannerData?.data?.topStories?.map { Article(it.id.toInt(), it.url) }
+                                intent.putParcelableArrayListExtra("articleList", ArrayList(articleList))//传入正确的文章列表
+                                context.startActivity(intent)
                             }
                     ) { page ->//显示图片
                         val imageUrl = imageUrls?.get(page)

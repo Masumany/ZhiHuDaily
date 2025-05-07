@@ -69,8 +69,10 @@ class ContentActivity : ComponentActivity() {
                 val viewModel: ContentViewModel = viewModel()
                 val url = intent.getStringExtra("url") ?: ""
                 val id = intent.getIntExtra("id", 0)
+                Log.d("ContentActivity", "onCreate: $url")
+                Log.d("ContentActivity", "onCreate: $id")
                 val articleList = intent.getParcelableArrayListExtra<Article>("articleList") ?: emptyList()//接受从MainActivity中获取的articleList
-                var currentIndex by remember { mutableIntStateOf(articleList.indexOfFirst { it.id == id }) }//遍历列表返回弟弟一个元素的索引，没有找到符合条件的返回-1
+                var currentIndex by remember { mutableIntStateOf(articleList.indexOfFirst { it.id == id }) }//遍历列表返回第一个元素的索引，没有找到符合条件的返回-1
                 if (currentIndex == -1) {
                     currentIndex = 0//没有找到就为0
                 }

@@ -230,7 +230,20 @@ class LoginActivity : ComponentActivity() {
                                 Text(
                                     text = if (ThemeManager.isDarkTheme) "切换到亮色模式" else "切换到暗色模式",
                                     style = TextStyle(fontSize = 14.sp),
-                                    modifier = Modifier.padding(top = 5.dp),
+                                    modifier = Modifier.padding(top = 5.dp)
+                                        .clickable {
+                                            ThemeManager.toggleTheme()
+                                            // 重新设置当前界面的内容，触发 UI 更新
+                                            setContent {
+                                                ZhuHuDailyTheme(darkTheme = ThemeManager.isDarkTheme) {
+                                                    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                                                        Login(
+                                                            modifier = Modifier.padding(innerPadding)
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        },
                                     color = if (ThemeManager.isDarkTheme) Color.White else Color.Black
                                 )
                             }//切换主题
@@ -242,14 +255,20 @@ class LoginActivity : ComponentActivity() {
                                     painter = painterResource(if (ThemeManager.isDarkTheme) R.drawable.lightsetting else R.drawable.change),
                                     contentDescription = null,
                                     modifier = Modifier.size(50.dp)
+                                        .clickable {
+                                            Toast.makeText(context, "请先登录知乎", Toast.LENGTH_SHORT).show()
+                                            val url = "https://www.zhihu.com/signin"
+                                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                            context.startActivity(intent)
+                                        }
                                 )
                                 Text(
                                     text = "设置",
                                     style = TextStyle(fontSize = 14.sp),
                                     modifier = Modifier.padding(top = 5.dp)
                                         .clickable {
-                                            val url = "https://www.zhihu.com/signin"
                                             Toast.makeText(context, "请先登录知乎", Toast.LENGTH_SHORT).show()
+                                            val url = "https://www.zhihu.com/signin"
                                             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                                             context.startActivity(intent)
                                         },
