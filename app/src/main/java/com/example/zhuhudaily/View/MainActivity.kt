@@ -75,10 +75,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.time.LocalDate
+import java.time.LocalTime
+import java.time.LocalTime.now
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import kotlin.concurrent.timer
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -427,6 +430,7 @@ class MainActivity : ComponentActivity() {
                     delay(1000)//挂起函数，每一1000s刷新一次
                 }
             }
+            val currentTime= LocalTime.now()
 
             Row(
                 modifier = modifier
@@ -471,7 +475,7 @@ class MainActivity : ComponentActivity() {
                             .align(Alignment.CenterVertically)
                     )
                     Text(
-                        text = "知乎日报",
+                        text = if (currentTime.hour >=18) "晚上好！" else if (currentTime.hour >= 12) "下午好！" else if (currentTime.hour >= 7) "上午好！" else "知乎日报",
                         style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold)
                     )
                 }
