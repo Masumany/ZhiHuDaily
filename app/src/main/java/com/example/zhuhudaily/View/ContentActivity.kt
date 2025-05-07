@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.Log
+import android.view.ViewGroup
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
@@ -26,6 +27,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -78,39 +81,64 @@ class ContentActivity : ComponentActivity() {
                 }//协程体
 
                 Column {
-                    Content(
+                    val pagerState = rememberPagerState(
+                        initialPage = currentIndex,
+                        pageCount = { articleList.size }
+                    )
+                    HorizontalPager(
+                        state = pagerState,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(if (isExpanded) 400.dp else 680.dp)
-                            .background(if (ThemeManager.isDarkTheme) Color.Black else Color.White),
-                        url = articleList.getOrNull(currentIndex)?.url ?: url,
-                        onPreviousClick = {
-                            if (currentIndex > 0) {
-                                currentIndex--
-                                if(currentIndex == 0){
-                                    Toast.makeText(this@ContentActivity, "已到文章列表的起始", Toast.LENGTH_SHORT).show()
+                            .background(if (ThemeManager.isDarkTheme) Color.Black else Color.White)
+                    ) { page ->
+                        Content(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(if (isExpanded) 400.dp else 680.dp)
+                                .background(if (ThemeManager.isDarkTheme) Color.Black else Color.White),
+                            url = articleList.getOrNull(currentIndex)?.url ?: url,
+                            onPreviousClick = {
+                                if (currentIndex > 0) {
+                                    currentIndex--
+                                    if (currentIndex == 0) {
+                                        Toast.makeText(
+                                            this@ContentActivity,
+                                            "已到文章列表的起始",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+                            },
+                            onNextClick = {
+                                if (currentIndex < articleList.size - 1) {
+                                    currentIndex++
+                                    if (currentIndex == articleList.size - 1) {
+                                        Toast.makeText(
+                                            this@ContentActivity,
+                                            "已到文章列表的末尾",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
                                 }
                             }
-                        },
-                        onNextClick = {
-                            if (currentIndex < articleList.size - 1) {
-                                currentIndex++
-                                if (currentIndex == articleList.size - 1){
-                                    Toast.makeText(this@ContentActivity, "已到文章列表的末尾", Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                        }
-                    )//切换上下篇文章的方法
-                    Comments(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(if (ThemeManager.isDarkTheme) Color.Black else Color.White),
-                        articleId = articleList.getOrNull(currentIndex)?.id?.toString() ?: id.toString(),
-                        isExpanded = isExpanded,
-                        onExpandChange = { isExpanded = it },
-                        viewModel = viewModel
-                    )//评论展开折叠的方法
-                }
+                        )//切换上下篇文章的方法
+                    }
+                    LaunchedEffect(pagerState.currentPage) {
+                        currentIndex= pagerState.currentPage
+                        viewModel.fetchComments(articleList.getOrNull(currentIndex)?.id?.toString() ?: id.toString())
+                    }
+                        Comments(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(if (ThemeManager.isDarkTheme) Color.Black else Color.White),
+                            articleId = articleList.getOrNull(currentIndex)?.id?.toString()
+                                ?: id.toString(),
+                            isExpanded = isExpanded,
+                            onExpandChange = { isExpanded = it },
+                            viewModel = viewModel
+                        )//评论展开折叠的方法
+                    }
             }
         }
     }
@@ -162,38 +190,12 @@ fun Content(
                     context.startActivity(intent)
                 }
         )//返回
-        Box(modifier = Modifier.weight(1f)) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-                    .zIndex(1f)
-                    .align(Alignment.Center),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Image(painter = painterResource(id = R.drawable.before), contentDescription = "上一篇",
-                    modifier = Modifier
-                        .align(Alignment.CenterVertically)
-                        .clickable {
-                            onPreviousClick()
-                        })
-
-                Image(painter = painterResource(id = R.drawable.after), contentDescription = "下一篇",
-                    modifier = Modifier
-                        .align(Alignment.CenterVertically)
-                        .clickable {
-                            onNextClick()
-                        })
-
-            }//切换上下篇按钮
-
             AndroidView(
                 factory = { context ->//webView实例
                     WebView(context).apply {
-                        layoutParams = android.view.ViewGroup.LayoutParams(
-                            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-                            android.view.ViewGroup.LayoutParams.MATCH_PARENT
+                        layoutParams = ViewGroup.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT
                         )//设置webView的参数
                         webViewClient = object : WebViewClient() {
                             override fun onReceivedError(
@@ -224,7 +226,6 @@ fun Content(
             currentUrl = url
         }
     }
-}
 
 @Composable
 fun Comments(
