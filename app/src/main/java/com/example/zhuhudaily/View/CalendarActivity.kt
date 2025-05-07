@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -97,7 +98,14 @@ fun Calendar(viewModel: CalendarViewModel) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Button(onClick = { viewModel.previousMonth() }
-                , modifier = Modifier.background(Color.Transparent)) {
+                ,
+                colors = ButtonDefaults.buttonColors(
+                    contentColor = Color.White,
+                    containerColor = Color(if (ThemeManager.isDarkTheme) 0xFF8E61DE else 0xFF03A9F4),
+                ) ,
+                modifier = Modifier
+                    .background(Color.Transparent),
+                ) {
                 Text(text = "上一月")
             }
             Text(
@@ -105,7 +113,11 @@ fun Calendar(viewModel: CalendarViewModel) {
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
-            Button(onClick = { viewModel.nextMonth() }) {
+            Button(onClick = { viewModel.nextMonth() }
+            , colors = ButtonDefaults.buttonColors(
+                    contentColor = Color.White,
+                    containerColor = Color(if (ThemeManager.isDarkTheme) 0xFF8E61DE else 0xFF03A9F4),
+                )) {
                 Text(text = "下一月")
             }
         }//切换月份的按钮
@@ -140,7 +152,9 @@ fun Calendar(viewModel: CalendarViewModel) {
                         val isCurrentDay = viewModel.currentMonth.year == currentDate.year &&
                                 viewModel.currentMonth.month == currentDate.month &&
                                 dayCounter == currentDate.dayOfMonth
-                        val textColor = if (isCurrentDay) Color.Red else Color.Unspecified
+                        val textColor = if (isCurrentDay) if (ThemeManager.isDarkTheme) Color(
+                            0xFFBD9EF7
+                        ) else Color(0xFF03A9F4) else Color.Unspecified
                         Text(
                             text = dayCounter.toString(),
                             color = textColor
