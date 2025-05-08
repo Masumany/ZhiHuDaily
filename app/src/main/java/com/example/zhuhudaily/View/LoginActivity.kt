@@ -26,6 +26,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -99,11 +100,14 @@ class LoginActivity : ComponentActivity() {
                         style = TextStyle(
                             fontSize = 30.sp,
                             fontWeight = FontWeight.Bold,
-                            ),
-
+                            color = if (ThemeManager.isDarkTheme) Color.White else Color.Black
+                        )
                     )
-                }
-            )//标题
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = if (ThemeManager.isDarkTheme) Color(0xFF1A1A1A) else Color.White
+                )
+            )
             Text(
                 text = "请选择登陆方式",
                 modifier = Modifier.fillMaxWidth()
@@ -190,7 +194,9 @@ class LoginActivity : ComponentActivity() {
                                 context.startActivity(intent)
                             },
                         style = TextStyle(
-                            color = if (ThemeManager.isDarkTheme) Color(0xFFBB86FC) else Color(0xFF6200EE)
+                            color = if (ThemeManager.isDarkTheme) Color(0xFF57C9FC) else Color(
+                                0xFF2196F3
+                            )
                         )
                     )
                 }//同意项
@@ -228,7 +234,7 @@ class LoginActivity : ComponentActivity() {
                                         }
                                 )
                                 Text(
-                                    text = if (ThemeManager.isDarkTheme) "切换到亮色模式" else "切换到暗色模式",
+                                    text = if (ThemeManager.isDarkTheme) "日间模式" else "夜间模式",
                                     style = TextStyle(fontSize = 14.sp),
                                     modifier = Modifier.padding(top = 5.dp)
                                         .clickable {
